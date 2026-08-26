@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+
+# Local Metasploit/Nmap artifacts
+audits/
+*.xml
+*.log
+
+# Local environment and credentials
+.env
+.env.*
+*.key
+*.pem
