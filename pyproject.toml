@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "msf-bridge"
+version = "0.1.0"
+description = "Authorized Purple Team Nmap to Metasploit RPC bridge and MCP server"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Manus AI" }]
+license = { text = "MIT" }
+dependencies = [
+  "mcp>=2,<3",
+  "msgpack>=1.0",
+  "requests>=2.31",
+]
+
+[project.scripts]
+msf-bridge = "msf_bridge:main"
+msf-bridge-mcp = "msf_bridge_mcp:main"
+
+[tool.setuptools]
+py-modules = ["msf_bridge", "msf_bridge_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
