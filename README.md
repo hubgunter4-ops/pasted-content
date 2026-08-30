@@ -124,7 +124,14 @@ Desde el directorio del repositorio, ejecuta el entry point instalado:
 msf-bridge-mcp
 ```
 
-Para un diagnóstico básico, usa el comando de capacidades a través de un host MCP o del inspector compatible con el SDK. No escribas banners ni mensajes de diagnóstico en `stdout`: el servidor envía logs a `stderr` para no corromper el canal stdio JSON-RPC.[2]
+Para una ejecución guiada local, usa el preflight antes de iniciar el transporte MCP:
+
+```bash
+. .venv/bin/activate
+python msf_bridge_mcp.py --guided
+```
+
+El modo guiado solo imprime pasos en `stderr`; no inicia MCP, no contacta Metasploit y no ejecuta acciones sobre objetivos. Para un diagnóstico básico, usa el comando de capacidades a través de un host MCP o del inspector compatible con el SDK. No escribas banners ni mensajes de diagnóstico en `stdout`: el servidor envía logs a `stderr` para no corromper el canal stdio JSON-RPC.[2]
 
 El comando CLI heredado sigue disponible:
 

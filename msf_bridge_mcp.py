@@ -13,6 +13,7 @@ import logging
 import os
 import re
 import shlex
+import sys
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
@@ -491,15 +492,35 @@ def kill_job(job_id: int, authorization_ack: str) -> Dict[str, Any]:
         raise RuntimeError(f"Metasploit RPC error: {exc}") from exc
 
 
-def main() -> None:
+def guided_flow() -> str:
+    """Return a safe operator checklist without contacting RPC or MCP clients."""
+    return "\n".join([
+        "MSF Bridge MCP — ejecución guiada",
+        "[1] Confirmar alcance escrito, ventana y objetivos permitidos.",
+        "[2] Mantener MSF_MCP_ENABLE_ACTIVE=0 durante el preflight.",
+        "[3] Configurar la allowlist MSF_MCP_ALLOWED_TARGETS.",
+        "[4] Verificar capacidades y empezar por operaciones de solo lectura.",
+        "[5] Habilitar acciones activas únicamente durante una ventana aprobada.",
+        "[6] Registrar resultados y ejecutar cleanup al terminar.",
+    ])
+
+
+def main() -> int:
     """Run the MCP server over stdio; diagnostics go to stderr only."""
+    if "--guided" in sys.argv[1:]:
+        print(guided_flow(), file=sys.stderr)
+        return 0
+    if "--help" in sys.argv[1:]:
+        print("Uso: msf-bridge-mcp [--guided]", file=sys.stderr)
+        return 0
     logging.basicConfig(
         level=os.environ.get("MSF_MCP_LOG_LEVEL", "INFO").upper(),
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
     LOGGER.info("MSF Bridge MCP server %s starting on stdio", SERVER_VERSION)
     mcp.run(transport="stdio")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
