@@ -227,3 +227,17 @@ El código de este repositorio se distribuye bajo MIT. La licencia del SDK MCP e
 [2]: https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server "MCP — Build an MCP server"
 
 [3]: https://attack.mitre.org/ "MITRE ATT&CK — Enterprise techniques"
+
+## Guía de ejecución
+
+Instala el paquete dentro de un entorno virtual y valida primero el preflight:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e .
+python msf_bridge_mcp.py --guided
+python -m unittest discover -s tests -v
+```
+
+El modo `--guided` escribe la guía en `stderr`, no inicia el transporte MCP y no contacta Metasploit. Para operar el servidor MCP usa `msf-bridge-mcp` con `MSF_MCP_ALLOWED_TARGETS` configurado y los flags activos deshabilitados hasta la ventana aprobada. Guarda credenciales fuera de Git, ejecuta cleanup de jobs/sesiones y conserva la licencia del proyecto.
