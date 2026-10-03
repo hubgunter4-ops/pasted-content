@@ -1,0 +1,4 @@
+ROOT=/tmp/msf-bridge-deb-clean.zEYmvC
+clean staging install: OK
+fresh runtime action: OK
+GUI offscreen launch: OK

@@ -1,6 +1,7 @@
 import tempfile
 import time
 import unittest
+import sys
 from pathlib import Path
 
 from runner_core.action_model import ActionSpec
@@ -32,6 +33,12 @@ class RunnerCoreTests(unittest.TestCase):
         result = ProcessRunner().run(spec)
         self.assertEqual(result.status, "TIMEOUT")
         self.assertIsNotNone(result.exit_code)
+
+    def test_python_adapter_uses_active_interpreter(self):
+        spec = ActionSpec("python", "Python", "", ["python3", "-c", "import sys; print(sys.executable)"])
+        result = ProcessRunner().run(spec)
+        self.assertEqual(result.status, "COMPLETED")
+        self.assertEqual(result.stdout.strip(), sys.executable)
 
     def test_dry_run_does_not_execute(self):
         with tempfile.TemporaryDirectory() as directory:

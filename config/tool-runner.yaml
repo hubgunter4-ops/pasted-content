@@ -3,7 +3,7 @@
   "project": {"name": "msf-bridge", "version": "0.1.0", "interface": "gui-cli", "profile": "ops-mono"},
   "actions": [
     {"id": "detect", "label": "Detect environment", "description": "Check the local runtime and required binaries.", "command": ["python3", "-c", "import json,shutil; print(json.dumps({'python3': shutil.which('python3') is not None}))"], "risk": "low", "timeout_seconds": 30, "verifier": "json_payload"},
-    {"id": "guided-preflight", "label": "Preflight", "description": "Run the local guided preflight without contacting Metasploit.", "command": ["python3", "msf_bridge_mcp.py", "--guided"], "risk": "low", "timeout_seconds": 30, "verifier": "exit_code"},
+    {"id": "guided-preflight", "label": "Preflight", "description": "Run the local guided preflight without contacting Metasploit.", "command": ["python3", "-m", "msf_bridge_mcp", "--guided"], "risk": "low", "timeout_seconds": 30, "verifier": "exit_code"},
     {"id": "health-check", "label": "Health check", "description": "Check the configured Metasploit RPC endpoint.", "command": ["python3", "-m", "runner_core.adapter_cli", "health-check"], "risk": "low", "timeout_seconds": 30, "verifier": "rpc_health"},
     {"id": "list-services", "label": "List services", "description": "Read services from the configured Metasploit database.", "command": ["python3", "-m", "runner_core.adapter_cli", "list-services"], "risk": "low", "timeout_seconds": 30, "verifier": "json_payload"},
     {"id": "map-services", "label": "Map services", "description": "Map stored services to modules without launching them.", "command": ["python3", "-m", "runner_core.adapter_cli", "map-services"], "risk": "low", "timeout_seconds": 30, "verifier": "json_payload"},

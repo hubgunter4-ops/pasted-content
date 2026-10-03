@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import signal
 import subprocess
+import sys
 import threading
 import time
 from datetime import datetime, timezone
@@ -48,9 +49,12 @@ class ProcessRunner:
         process_env.update(spec.env)
         if env:
             process_env.update(env)
+        command = list(spec.command)
+        if command and command[0] in {"python", "python3"}:
+            command[0] = sys.executable
         try:
             proc = subprocess.Popen(
-                spec.command, cwd=str(cwd), env=process_env, text=True,
+                command, cwd=str(cwd), env=process_env, text=True,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 start_new_session=True,
             )

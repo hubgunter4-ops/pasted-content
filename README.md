@@ -291,6 +291,21 @@ msf-bridge-ops
 
 El paquete instala el código en `/opt/msf-bridge-ops`, un launcher en `/usr/bin/msf-bridge-ops` y un acceso de escritorio. `install-runtime.sh` crea el entorno aislado e instala las dependencias del proyecto. Para desinstalar explícitamente: `packaging/uninstall.sh --yes`. No se incluyen credenciales ni rutas absolutas del entorno de desarrollo.
 
+Para probar una versión recién generada sin modificar el sistema anfitrión, se puede extraer el `.deb` en una raíz temporal, crear un `.venv` nuevo e instalar el proyecto desde `/opt/msf-bridge-ops`. El runner sustituye `python3` por el intérprete activo del entorno virtual para que los adaptadores encuentren `mcp` y el resto de dependencias:
+
+```bash
+ROOT=$(mktemp -d /tmp/msf-bridge-deb-clean.XXXXXX)
+mkdir -p "$ROOT/rootfs"
+dpkg-deb --extract dist/msf-bridge-ops_0.1.0_amd64.deb "$ROOT/rootfs"
+python3 -m venv "$ROOT/venv"
+"$ROOT/venv/bin/python" -m pip install "$ROOT/rootfs/opt/msf-bridge-ops"
+QT_QPA_PLATFORM=offscreen "$ROOT/venv/bin/python" -m runner_core.adapter_cli --help
+```
+
+La validación limpia ejecutada para la versión actual confirmó extracción, instalación de dependencias, imports de `mcp`/PySide6, `adapter_cli --help`, `guided-preflight` con `COMPLETED` y lanzamiento offscreen de la GUI. No se usaron objetivos de red ni Metasploit RPC.
+
+Las capturas de esta sesión están en [`previews/deb-clean-installed.png`](previews/deb-clean-installed.png) y [`previews/deb-clean-session.png`](previews/deb-clean-session.png).
+
 ### Estado del repositorio
 
 El repositorio contiene la implementación GUI, las pruebas de ejecución verificable, el plan técnico, los previews visuales y el paquete Debian generado. Antes de publicar una nueva versión se recomienda ejecutar:
