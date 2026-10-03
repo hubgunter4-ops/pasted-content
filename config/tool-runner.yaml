@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "project": {"name": "msf-bridge", "version": "0.1.0", "interface": "gui-cli", "profile": "ops-mono"},
+  "actions": [
+    {"id": "detect", "label": "Detect environment", "description": "Check the local runtime and required binaries.", "command": ["python3", "-c", "import json,shutil; print(json.dumps({'python3': shutil.which('python3') is not None}))"], "risk": "low", "timeout_seconds": 30, "verifier": "json_payload"},
+    {"id": "guided-preflight", "label": "Preflight", "description": "Run the local guided preflight without contacting Metasploit.", "command": ["python3", "msf_bridge_mcp.py", "--guided"], "risk": "low", "timeout_seconds": 30, "verifier": "exit_code"},
+    {"id": "health-check", "label": "Health check", "description": "Check the configured Metasploit RPC endpoint.", "command": ["python3", "-m", "runner_core.adapter_cli", "health-check"], "risk": "low", "timeout_seconds": 30, "verifier": "rpc_health"},
+    {"id": "list-services", "label": "List services", "description": "Read services from the configured Metasploit database.", "command": ["python3", "-m", "runner_core.adapter_cli", "list-services"], "risk": "low", "timeout_seconds": 30, "verifier": "json_payload"},
+    {"id": "map-services", "label": "Map services", "description": "Map stored services to modules without launching them.", "command": ["python3", "-m", "runner_core.adapter_cli", "map-services"], "risk": "low", "timeout_seconds": 30, "verifier": "json_payload"},
+    {"id": "scan-target", "label": "Scan target", "description": "Allowlisted network activity with explicit policy gates; target inputs required.", "command": ["python3", "-m", "runner_core.adapter_cli", "scan-target"], "risk": "high", "timeout_seconds": 300, "requires_confirmation": true, "verifier": "json_payload"},
+    {"id": "execute-mapped-module", "label": "Execute mapped module", "description": "Run only a mapped module under scope and authorization gates; target and module inputs required.", "command": ["python3", "-m", "runner_core.adapter_cli", "execute-mapped-module"], "risk": "high", "timeout_seconds": 900, "requires_confirmation": true, "verifier": "json_payload"},
+    {"id": "generate-report", "label": "Generate report", "description": "Write a validated Markdown audit report.", "command": ["python3", "-c", "from pathlib import Path; p=Path('audits/preflight.md'); p.parent.mkdir(exist_ok=True); p.write_text('# Preflight report\\n'); print(p)"], "risk": "medium", "timeout_seconds": 30, "verifier": "report_file"}
+  ]
+}

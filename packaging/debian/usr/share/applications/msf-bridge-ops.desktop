@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=MSF Bridge Ops Mono
+Comment=Authorized Purple Team operations console
+Exec=/usr/bin/msf-bridge-ops
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+Categories=Development;Security;System;

@@ -15,7 +15,11 @@ La arquitectura mantiene el cliente RPC existente en `msf_bridge.py` y añade `m
 | `msf_bridge.py` | Cliente Metasploit RPC, mapeo de servicios, sesiones, jobs e informes | CLI heredada y biblioteca local |
 | `msf_bridge_mcp.py` | Herramientas MCP, validación, controles de autorización y serialización | Servidor MCP sobre stdio |
 | `tests/test_mcp_policy.py` | Pruebas de allowlist, validación de target, argumentos y flags | No realiza red ni RPC |
-| `pyproject.toml` | Dependencias y comandos instalables | `msf-bridge` y `msf-bridge-mcp` |
+| `runner_core/` | Runner observable, verificadores, registry y adaptadores RPC | Acciones verificadas y estados operativos |
+| `interfaces/gui/` | Interfaz PySide6 Ops Mono | Consola desktop colorida |
+| `config/tool-runner.yaml` | Definición declarativa de acciones | GUI, CLI y pruebas |
+| `packaging/` | Instalador, build Debian y desinstalador | `.deb` amd64 |
+| `pyproject.toml` | Dependencias y comandos instalables | `msf-bridge`, `msf-bridge-mcp` y `msf-bridge-ops` |
 
 ## Requisitos
 
@@ -30,7 +34,7 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-El proyecto instala `mcp>=2,<3`, `msgpack>=1.0` y `requests>=2.31`. Para verificar la versión instalada del SDK:
+El proyecto instala `mcp>=2,<3`, `msgpack>=1.0`, `requests>=2.31` y `PySide6>=6.7,<7`. Para verificar la versión instalada del SDK:
 
 ```bash
 python -c "import mcp; print(mcp.__version__)"
@@ -241,3 +245,59 @@ python -m unittest discover -s tests -v
 ```
 
 El modo `--guided` escribe la guía en `stderr`, no inicia el transporte MCP y no contacta Metasploit. Para operar el servidor MCP usa `msf-bridge-mcp` con `MSF_MCP_ALLOWED_TARGETS` configurado y los flags activos deshabilitados hasta la ventana aprobada. Guarda credenciales fuera de Git, ejecuta cleanup de jobs/sesiones y conserva la licencia del proyecto.
+
+## Ops Mono GUI y ejecución verificada
+
+El repositorio incluye ahora una interfaz de escritorio PySide6 en `interfaces/gui/` con el perfil Ops Mono: tipografía monoespaciada, superficies grafito oscuro, acentos teal, verde de éxito, ámbar de advertencia y estados de fallo explícitos. La GUI y la CLI usan `config/tool-runner.yaml` como definición compartida de acciones.
+
+Una acción nunca se considera completada solo porque se pulsó un botón. `runner_core` registra PID, timestamps, cwd, duración, código de salida, stdout y stderr, aplica timeout/cancelación y ejecuta un verificador de postcondición. Un proceso con código cero pero sin evidencia válida termina en `ATTENTION`, no en `COMPLETED`. Las acciones activas continúan detrás de la allowlist, acknowledgement y flags MCP existentes.
+
+La variante visual actual conserva la estructura aprobada —menú, toolbar, explorador, overview, inspector, cola y consola— y añade una paleta de mayor contraste: navy/grafito, azul eléctrico, teal, violeta, verde, ámbar y coral. Las acciones de la cola se colorean según su estado real; las acciones activas bloqueadas se muestran en coral y las completadas en verde.
+
+Los adaptadores RPC de solo lectura están disponibles mediante `python -m runner_core.adapter_cli` para `health-check`, `list-services` y `map-services`. El health check solo puede quedar en `COMPLETED` cuando el payload informa `rpc_alive=true`; un JSON válido con RPC no saludable termina en `ATTENTION`.
+
+### Validación local segura
+
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m interfaces.gui.app
+```
+
+La suite cubre verificación de acciones, dry-run, timeout, gates de confirmación, construcción de GUI, política MCP y protocolo MCP stdio. No utiliza objetivos reales, Nmap ni sesiones de Metasploit.
+
+La captura visual de referencia se conserva en [`previews/colorful-opsmono.png`](previews/colorful-opsmono.png). También se puede generar una nueva captura con:
+
+```bash
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m interfaces.gui.app
+```
+
+### Paquete Debian
+
+Construye el paquete amd64 sin pasos privilegiados:
+
+```bash
+packaging/build-deb.sh
+cat packaging/SHA256SUMS
+dpkg-deb --info dist/msf-bridge-ops_0.1.0_amd64.deb
+dpkg-deb --contents dist/msf-bridge-ops_0.1.0_amd64.deb
+```
+
+Para instalarlo en un host Debian/Ubuntu:
+
+```bash
+packaging/install.sh
+msf-bridge-ops
+```
+
+El paquete instala el código en `/opt/msf-bridge-ops`, un launcher en `/usr/bin/msf-bridge-ops` y un acceso de escritorio. `install-runtime.sh` crea el entorno aislado e instala las dependencias del proyecto. Para desinstalar explícitamente: `packaging/uninstall.sh --yes`. No se incluyen credenciales ni rutas absolutas del entorno de desarrollo.
+
+### Estado del repositorio
+
+El repositorio contiene la implementación GUI, las pruebas de ejecución verificable, el plan técnico, los previews visuales y el paquete Debian generado. Antes de publicar una nueva versión se recomienda ejecutar:
+
+```bash
+git diff --check
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m unittest discover -s tests -v
+packaging/build-deb.sh
+sha256sum -c packaging/SHA256SUMS
+```

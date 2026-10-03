@@ -1,0 +1,10 @@
+Package: msf-bridge-ops
+Version: 0.1.0
+Section: net
+Priority: optional
+Architecture: amd64
+Maintainer: MSF Bridge contributors
+Depends: python3 (>= 3.10), python3-venv
+Description: MSF Bridge authorized Purple Team operations console
+ PySide6 Ops Mono desktop interface for the existing MSF Bridge CLI and MCP
+ server. Active network and Metasploit operations remain policy-gated.

@@ -14,14 +14,19 @@ dependencies = [
   "mcp>=2,<3",
   "msgpack>=1.0",
   "requests>=2.31",
+  "PySide6>=6.7,<7",
 ]
 
 [project.scripts]
 msf-bridge = "msf_bridge:main"
 msf-bridge-mcp = "msf_bridge_mcp:main"
+msf-bridge-ops = "interfaces.gui.app:main"
 
 [tool.setuptools]
 py-modules = ["msf_bridge", "msf_bridge_mcp"]
+
+[tool.setuptools.packages.find]
+include = ["runner_core*", "interfaces*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
