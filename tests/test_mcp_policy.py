@@ -12,6 +12,7 @@ DEFAULT_VALIDATORS = (
     "allowlist",
     "scope",
     "flags",
+    "default_scope",
 )
 
 PolicyValidator = Callable[[], None]
@@ -153,10 +154,38 @@ def validate_flags() -> None:
             raise AssertionError("No se devolvió el target normalizado")
 
 
+def validate_default_scope() -> None:
+    """Valida el scope configurable y su fallback seguro a passive."""
+    with patch.dict(os.environ, {}, clear=False):
+        os.environ.pop("MSF_MCP_DEFAULT_SCOPE", None)
+        if server._default_scope() != "passive":
+            raise AssertionError("El scope predeterminado debe ser passive")
+
+    for configured in ("passive", "cred", "full"):
+        with patch.dict(
+            os.environ,
+            {"MSF_MCP_DEFAULT_SCOPE": configured},
+            clear=False,
+        ):
+            if server._default_scope() != configured:
+                raise AssertionError(f"No se aplicó el scope configurado: {configured}")
+            if server._resolve_scope(None) != configured:
+                raise AssertionError(f"No se resolvió el scope omitido: {configured}")
+
+    with patch.dict(
+        os.environ,
+        {"MSF_MCP_DEFAULT_SCOPE": "invalid"},
+        clear=False,
+    ):
+        with unittest.TestCase().assertRaises(ValueError):
+            server._default_scope()
+
+
 VALIDATORS: dict[str, PolicyValidator] = {
     "allowlist": validate_allowlist,
     "scope": validate_scope,
     "flags": validate_flags,
+    "default_scope": validate_default_scope,
 }
 
 

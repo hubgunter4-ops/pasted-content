@@ -64,6 +64,10 @@ export MSF_SSL=0
 # IP, CIDR o FQDN separados por coma o punto y coma.
 export MSF_MCP_ALLOWED_TARGETS='192.0.2.0/24,lab.example.com'
 
+# Scope usado cuando una herramienta no lo recibe explícitamente.
+# Valores válidos: passive, cred, full. passive es el fallback seguro.
+export MSF_MCP_DEFAULT_SCOPE=passive
+
 # Mantener deshabilitados hasta el inicio de una ventana autorizada.
 export MSF_MCP_ENABLE_ACTIVE=0
 export MSF_MCP_ENABLE_CRED_TESTS=0
@@ -79,6 +83,7 @@ export MSF_MCP_LOG_LEVEL=INFO
 | `MSF_PASS` | `msf` | Secreto RPC | Sobrescribir siempre; nunca confirmarlo en Git |
 | `MSF_SSL` | `0` | HTTPS para RPC | Activar cuando el RPC no sea local |
 | `MSF_MCP_ALLOWED_TARGETS` | vacío | Allowlist obligatoria para operaciones sobre targets | Limitar a IPs, CIDR y FQDN aprobados |
+| `MSF_MCP_DEFAULT_SCOPE` | `passive` | Scope aplicado cuando la llamada omite `scope` | Mantener `passive`; usar `cred` o `full` solo con alcance aprobado |
 | `MSF_MCP_ENABLE_ACTIVE` | `0` | Habilita escaneo y ejecución de módulos | Activar solo durante la ventana aprobada |
 | `MSF_MCP_ENABLE_CRED_TESTS` | `0` | Habilita módulos de prioridad 2 | Requiere autorización específica |
 | `MSF_MCP_ENABLE_EXPLOITS` | `0` | Habilita módulos de tipo exploit | Reservar para laboratorio o alcance `full` |
@@ -161,6 +166,7 @@ Los clientes MCP suelen iniciar el servidor como un subproceso con un comando y 
         "MSF_USER": "msf",
         "MSF_PASS": "CARGAR_DESDE_UN_GESTOR_DE_SECRETOS",
         "MSF_MCP_ALLOWED_TARGETS": "192.0.2.0/24",
+        "MSF_MCP_DEFAULT_SCOPE": "passive",
         "MSF_MCP_ENABLE_ACTIVE": "0",
         "MSF_MCP_ENABLE_CRED_TESTS": "0",
         "MSF_MCP_ENABLE_EXPLOITS": "0"

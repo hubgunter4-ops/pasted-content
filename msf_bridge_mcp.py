@@ -32,6 +32,7 @@ from msf_bridge import (
 LOGGER = logging.getLogger("msf_bridge_mcp")
 SERVER_VERSION = "0.1.0"
 AUTHORIZATION_ACK = "I_CONFIRM_AUTHORIZED_SCOPE"
+DEFAULT_SCOPE_ENV = "MSF_MCP_DEFAULT_SCOPE"
 
 mcp = MCPServer("msf-bridge")
 
@@ -41,6 +42,21 @@ def _env_bool(name: str, default: bool = False) -> bool:
     if value is None:
         return default
     return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def _default_scope() -> str:
+    """Return the configured scope, failing closed on an invalid value."""
+    value = os.environ.get(DEFAULT_SCOPE_ENV, "passive").strip().lower()
+    if value not in SCOPE_LEVELS:
+        raise ValueError(
+            f"{DEFAULT_SCOPE_ENV} debe ser uno de: {', '.join(SCOPE_LEVELS)}"
+        )
+    return value
+
+
+def _resolve_scope(scope: Optional[str]) -> str:
+    """Use the configured safe default when a tool omits scope."""
+    return _default_scope() if scope is None or not str(scope).strip() else str(scope).strip().lower()
 
 
 def _allowed_targets() -> List[str]:
@@ -229,6 +245,8 @@ def get_capabilities() -> Dict[str, Any]:
         "version": SERVER_VERSION,
         "transport": "stdio",
         "scopes": SCOPE_LEVELS,
+        "default_scope": _default_scope(),
+        "default_scope_env": DEFAULT_SCOPE_ENV,
         "authorization_ack_value": AUTHORIZATION_ACK,
         "allowed_targets_configured": bool(_allowed_targets()),
         "active_operations_enabled": _env_bool("MSF_MCP_ENABLE_ACTIVE", False),
@@ -281,8 +299,9 @@ def list_services(host_id: Optional[int] = None) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def map_services(scope: str = "passive") -> Dict[str, Any]:
+def map_services(scope: Optional[str] = None) -> Dict[str, Any]:
     """Map stored services to candidate Metasploit modules without launching them."""
+    scope = _resolve_scope(scope)
     if scope not in SCOPE_LEVELS:
         raise ValueError(f"scope debe ser uno de: {', '.join(SCOPE_LEVELS)}")
     try:
@@ -310,7 +329,7 @@ def map_services(scope: str = "passive") -> Dict[str, Any]:
 def scan_target(
     target: str,
     authorization_ack: str,
-    scope: str = "passive",
+    scope: Optional[str] = None,
     nmap_args: str = "-sV",
     timeout_s: int = 300,
 ) -> Dict[str, Any]:
@@ -321,6 +340,7 @@ def scan_target(
     MSF_MCP_ENABLE_ACTIVE=1. The Nmap argument set excludes scripts, arbitrary
     output paths, NSE execution, and shell syntax.
     """
+    scope = _resolve_scope(scope)
     normalized = _require_authorized(target, scope, authorization_ack)
     if not 5 <= timeout_s <= 3600:
         raise ValueError("timeout_s debe estar entre 5 y 3600")
@@ -357,7 +377,7 @@ def execute_mapped_module(
     target: str,
     module: str,
     authorization_ack: str,
-    scope: str = "cred",
+    scope: Optional[str] = None,
     port: Optional[int] = None,
     options: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
@@ -368,6 +388,7 @@ def execute_mapped_module(
     scope=full plus MSF_MCP_ENABLE_EXPLOITS=1. Every invocation also requires
     the target allowlist, active-operation flag, and exact authorization ack.
     """
+    scope = _resolve_scope(scope)
     metadata = _module_metadata(module)
     if metadata is None:
         raise ValueError("module no está en el mapa autorizado del proyecto")
