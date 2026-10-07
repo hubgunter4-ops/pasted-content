@@ -1,0 +1,58 @@
+flowchart LR
+    U[Usuario autorizado\nSolicitud de Purple Team] --> O
+
+    subgraph ORCH[Orquestador: content-skills-toolkit]
+        O[Normalizador y router\nIntención + alcance]
+        P[Planificador MCP\nDependencias y riesgo]
+        C{¿Operación activa?}
+        CONF[Confirmación explícita\nAlcance exacto + autorización]
+        G[MCP Gateway\nCliente stdio + contratos]
+        S[Supervisor\nTimeout · cuotas · circuit breaker]
+        A[Auditoría y observabilidad\nrequest_id · plan_id · tool · estado]
+        O --> P --> C
+        C -->|Lectura / análisis| G
+        C -->|scan o módulo activo| CONF --> G
+        G --> S --> A
+    end
+
+    subgraph MSF[Repositorio pasted-content: msf_bridge]
+        B[msf_bridge_mcp.py\nServidor MCP stdio]
+        V[Validación final\nTarget · scope · argumentos]
+        AL[Allowlist obligatoria\nMSF_MCP_ALLOWED_TARGETS]
+        ACK[authorization_ack exacto\nI_CONFIRM_AUTHORIZED_SCOPE]
+        FLAGS[Flags de política\nACTIVE=0 · CRED_TESTS=0 · EXPLOITS=0]
+        MAP[MODULE_MAP\nSin módulos arbitrarios]
+        B --> V
+        V --> AL
+        V --> ACK
+        V --> FLAGS
+        V --> MAP
+    end
+
+    subgraph RPC[Backend local protegido]
+        R[msfrpcd\n127.0.0.1 / red de administración]
+        DB[(Base de datos Metasploit)]
+        N[Nmap restringido\nsolo argumentos permitidos]
+        R --> DB
+        N --> R
+    end
+
+    G -->|JSON-RPC MCP sobre stdio| B
+    AL --> R
+    ACK --> R
+    FLAGS --> R
+    MAP --> R
+    B -->|RPC autenticado| R
+
+    X[Rechazar\nfuera de alcance, sin confirmación,\nargumentos inválidos o flag desactivado]
+    C -.->|No cumple política| X
+    V -.->|Fallo de control| X
+
+    classDef orchestrator fill:#e8f1ff,stroke:#2457a6,color:#102a43
+    classDef bridge fill:#eaf8ef,stroke:#287d3c,color:#12351b
+    classDef backend fill:#fff3df,stroke:#b26a00,color:#4a2b00
+    classDef guard fill:#ffe8e8,stroke:#b42318,color:#5c1111
+    class O,P,G,S,A orchestrator
+    class B,V,MAP bridge
+    class R,DB,N backend
+    class C,CONF,AL,ACK,FLAGS,X guard
