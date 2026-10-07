@@ -142,6 +142,27 @@ python msf_bridge_mcp.py --guided
 
 El modo guiado solo imprime pasos en `stderr`; no inicia MCP, no contacta Metasploit y no ejecuta acciones sobre objetivos. Para un diagnóstico básico, usa el comando de capacidades a través de un host MCP o del inspector compatible con el SDK. No escribas banners ni mensajes de diagnóstico en `stdout`: el servidor envía logs a `stderr` para no corromper el canal stdio JSON-RPC.[2]
 
+### Interfaz TUI local
+
+La interfaz de terminal se inicia con:
+
+```bash
+. .venv/bin/activate
+msf-bridge-tui
+```
+
+También puede ejecutarse desde el repositorio:
+
+```bash
+python interfaces/tui.py
+```
+
+Controles: `↑`/`↓` o `j`/`k` para navegar, `Enter` para inspeccionar, `r` para actualizar el estado y `q` para salir. La TUI no lanza operaciones de alto riesgo directamente: muestra sus requisitos y deriva la ejecución al flujo verificado de CLI/MCP. Para generar una vista estática reproducible:
+
+```bash
+python interfaces/tui.py --snapshot
+```
+
 El comando CLI heredado sigue disponible:
 
 ```bash

@@ -21,6 +21,7 @@ dependencies = [
 msf-bridge = "msf_bridge:main"
 msf-bridge-mcp = "msf_bridge_mcp:main"
 msf-bridge-ops = "interfaces.gui.app:main"
+msf-bridge-tui = "interfaces.tui:main"
 
 [tool.setuptools]
 py-modules = ["msf_bridge", "msf_bridge_mcp"]
